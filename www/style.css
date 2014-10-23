@@ -1,0 +1,69 @@
+h1
+{
+	margin: 10px auto 20px auto;
+	display: block;
+	width: 400px;
+}
+
+body
+{
+	font-family: Verdana;
+	margin: 0;
+	padding: 0;
+}
+
+.header, .footer
+{
+	width: 100%;
+	height: 100px;
+	border: 2px solid #729303;
+	background-color: #eee;
+	font-size: 36px;
+	text-align: center;
+	margin: 5px auto 5px auto;
+
+}
+
+.menu
+{
+	width: 100%;
+	height: 50px;
+	background-color: #blue;
+	font-size: 24px;
+	text-align: center;
+	vertical-align: medium;
+	margin: 5px auto 5px auto;
+	border-bottom: 1px solid green;
+}
+
+.menu a
+{
+	text-decoration: none;
+	color: green;
+}
+
+.menu ul li
+{
+	display: inline-block;
+	margin: 0 50px 0 50px;
+	
+}
+
+.menu a:visited
+{
+	color: green;
+}
+.content
+{
+	width: 80%;
+	height: 100px;
+	font-size: 24px;
+	text-align: center;
+	vertical-align: medium;
+	margin: 15px auto 15px auto;
+}
+
+.clear
+{
+	clear: both;
+}
