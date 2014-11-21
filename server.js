@@ -3,6 +3,7 @@ var app = express();
 var server = require('http').Server(app);
 var port = 8000;
 var spatialite = require('./spatialite');
+var osrm = require('./osrm.route');
 var Helper = require('./helper');
 var time = require('./time');
 spatialite.init(function(){
@@ -21,14 +22,58 @@ app.get('/',function(req,res){
 });
 
 
-/*маршрут для GET запроса маршрута от модуля spatialite*/
-app.get('/route',function(req,res){
+/*маршрут для GET запроса маршрута от модуля OSRM*/
+app.get('/routeosrm',function(req,res){
+	var data = JSON.parse(req.query.data);
+	var source = data[0];
+	var target = data[1];
+	var waypoints = [];
+	time.start();
+	osrm.getRoute(source, target, waypoints, function(route){
+		console.log('Executing time: '+time.stop());
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(route));
+		res.end();	
+	});
+});
+
+/*маршрут для GET запроса маршрута от модуля spatialite через запрос к базе*/
+app.get('/routequery',function(req,res){
 	var data = JSON.parse(req.query.data);
 	var source = data[0];
 	var target = data[1];
 	time.start();
-	//spatialite.routeDijkstra3(source, target, function(route){
 	spatialite.routeQuery(source, target, function(route){
+		console.log('Executing time: '+time.stop());
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(route));
+		res.end();
+	});
+     
+});
+
+/*маршрут для GET запроса маршрута от модуля spatialite через routeDijkstra3*/
+app.get('/routedijkstra3',function(req,res){
+	var data = JSON.parse(req.query.data);
+	var source = data[0];
+	var target = data[1];
+	time.start();
+	spatialite.routeDijkstra3(source, target, function(route){
+		console.log('Executing time: '+time.stop());
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(route));
+		res.end();
+	});
+     
+});
+
+/*маршрут для GET запроса маршрута от модуля spatialite через routeDijkstra*/
+app.get('/routedijkstra',function(req,res){
+	var data = JSON.parse(req.query.data);
+	var source = data[0];
+	var target = data[1];
+	time.start();
+	spatialite.routeDijkstra(source, target, function(route){
 		console.log('Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(route));

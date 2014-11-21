@@ -1,27 +1,29 @@
-/*объект для получения маршрута*/
+/**объект для получения маршрута**/
 var Route =
 {
-	service: 'spatialite', /*возможные варианты: 'osrm','google','spatialite'*/
+	service: 'spatialite_query', /**возможные варианты: 'osrm','google','spatialite_query','spatialite_dijkstra','spatialite_dijkstra3'**/
     
-    /**получение маршрута с различных сервисов
+    
+	/**объект directionsService**/
+    directionsService: new google.maps.DirectionsService(),
+	
+	/**получение маршрута с различных сервисов
     * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
     * @param callback объект в который передается маршрут в виде массива точек и объект полка
     **/
-	/*объект directionsService*/
-    directionsService: new google.maps.DirectionsService(),
-	
     getRoute: function(start,end,callback){
         if ( Route.service == 'google' ){
             Route.getRouteGoogle(start,end,callback);
-        }else if ( Route.service == 'spatialite'  ){
-            Route.getRouteSpatialite(start,end,callback);
+        }else if ( Route.service == 'spatialite_query'  ){
+            Route.getRouteSpatialiteQuery(start,end,callback);
         }else if ( Route.service == 'osrm' ){
             Route.getRouteOSRM(start,end,callback);
-        }else if ( Route.service == 'spatialite2' ){
-            Route.getRouteSpatialite2(start,end,callback);
-        }       
-        else{
-            Route.getRouteSpatialite(start,end,callback);
+        }else if ( Route.service == 'spatialite_dijkstra' ){
+            Route.getRouteSpatialiteDijkstra(start,end,callback);
+        }else if ( Route.service == 'spatialite_dijkstra3' ){
+            Route.getRouteSpatialiteDijkstra3(start,end,callback);
+        }else{
+            Route.getRouteSpatialiteQuery(start,end,callback);
         }
     },
     
@@ -50,26 +52,8 @@ var Route =
 			}
 		});
 	},
-    
-    
-    /**
-    * получение маршрута от модуля Spatialite
-    * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
-    * @param callback функция обратного вызова в которую передается маршрут и объект полка
-    **/
-    
-    getRouteSpatialite: function(start,end,callback){
-		var start = [start[0], start[1]];
-		var end = [end[0], end[1]];
-		var params = 'data=' + JSON.stringify([start,end]);
-		console.log(params);
-		Ajax.sendRequest('GET', '/route', params, function(route) {
-			//console.log(JSON.stringify(route));
-            callback(route);
-		});
-	},
-    
-    /**
+	
+	/**
     * получение маршрута от модуля OSRM
     * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
@@ -79,27 +63,64 @@ var Route =
 		var start = [start[0], start[1]];
 		var end = [end[0], end[1]];
 		var params = 'data=' + JSON.stringify([start,end]);
-		Ajax.sendRequest('POST', '/osrmroute', params, function(route) {
+		Ajax.sendRequest('GET', '/routeosrm', params, function(route) {
 			console.log(JSON.stringify(route));
             callback(route);
 		});
 	},
     
+    
     /**
-    * получение маршрута от модуля spatialite2
+    * получение маршрута от модуля Spatialite метод routeQuery
     * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
     **/
     
-    getRouteSpatialite2: function(e,regiment,callback){
-		var start = [regiment.marker.type.getLatLng().lat, regiment.marker.type.getLatLng().lng];
-		var end = [e.latlng.lat, e.latlng.lng];
+    getRouteSpatialiteQuery: function(start,end,callback){
+		var start = [start[0], start[1]];
+		var end = [end[0], end[1]];
 		var params = 'data=' + JSON.stringify([start,end]);
-		Ajax.sendRequest('POST', '/route2', params, function(route) {
-			console.log(JSON.stringify(route));
-            callback(route,regiment);
+		console.log(params);
+		Ajax.sendRequest('GET', '/routequery', params, function(route) {
+			//console.log(JSON.stringify(route));
+            callback(route);
 		});
 	},
+    
+    /**
+    * получение маршрута от модуля Spatialite метод routeDijkstra
+    * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+    * @param callback функция обратного вызова в которую передается маршрут и объект полка
+    **/
+    
+    getRouteSpatialiteDijkstra: function(start,end,callback){
+		var start = [start[0], start[1]];
+		var end = [end[0], end[1]];
+		var params = 'data=' + JSON.stringify([start,end]);
+		console.log(params);
+		Ajax.sendRequest('GET', '/routedijkstra', params, function(route) {
+			//console.log(JSON.stringify(route));
+            callback(route);
+		});
+	},
+	
+	/**
+    * получение маршрута от модуля Spatialite метод routeDijkstra3
+    * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+    * @param callback функция обратного вызова в которую передается маршрут и объект полка
+    **/
+    
+    getRouteSpatialiteDijkstra3: function(start,end,callback){
+		var start = [start[0], start[1]];
+		var end = [end[0], end[1]];
+		var params = 'data=' + JSON.stringify([start,end]);
+		console.log(params);
+		Ajax.sendRequest('GET', '/routedijkstra3', params, function(route) {
+			//console.log(JSON.stringify(route));
+            callback(route);
+		});
+	}
+    
     
 
 }
