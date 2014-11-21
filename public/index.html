@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>карта для проверки маршрутов</title>
+  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<link rel="stylesheet" href="/css/style.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script src="/js/leaflet-providers.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+    <script type="text/javascript" src="/js/route.js"></script>
+	<script type="text/javascript" src="/js/helper.js"></script>
+	<script type="text/javascript" src="/js/index.js"></script>
+</head>
+    <body>
+        <div id="map-block"></div>
+		<div class="service">
+			<select id="service">
+				<option value="google" >Google</option>
+				<option value="osrm" >OSRM</option>
+				<option selected="selected" value="spatialite" >Spatialite</option>
+				<option value="spatialite2" >Spatialite2</option>
+			</select>
+			<button id="all-roads">All roads</button>
+			<button id="all-nodes">All nodes</button>
+		</div>
+		<script type="text/javascript" src="/js/map.js"></script>
+		<script type="text/javascript" src="/js/handler.js"></script>
+    </body>
+</html>
