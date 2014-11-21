@@ -541,6 +541,21 @@ function getAllNodes(callback){
 	callback(allnodes);
 }
 
+/**
+* вывод всех запрещенных узлов
+**/
+function getRestirctedNodes(enemy, callback){
+	var restricted = [];
+	for ( var i = 0; i < enemy.length; i++ ){
+		for ( var j = 0; j < n; j++ ){
+			if ( distance([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius * enemy[i].radius ){
+				restricted.push([nodes[j].lat,nodes[j].lng]);
+			}
+		}
+	}
+	callback(restricted);
+}
+
 exports.init = init;
 exports.query = query;
 exports.loadNodes = loadNodes;
@@ -552,3 +567,4 @@ exports.getCost = getCost;
 exports.routeQuery = routeQuery;
 exports.getAllRoads = getAllRoads;
 exports.getAllNodes = getAllNodes;
+exports.getRestirctedNodes = getRestirctedNodes;

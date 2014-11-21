@@ -104,5 +104,14 @@ app.get('/allnodes',function(req,res){
      
 })
 
-
+/*маршрут для GET запроса запрещенных узлов от spatialite*/
+app.get('/restricted',function(req,res){
+	var data = JSON.parse(req.query.data);
+	spatialite.getRestirctedNodes(data, function(nodes){
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(nodes));
+		res.end();
+	});
+     
+})
 

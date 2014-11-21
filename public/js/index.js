@@ -10,6 +10,8 @@ window.onload = function(){
 	var btnAllNodesOn = false;
 	var btnAllRoads = document.getElementById('all-roads');
 	var btnAllNodes = document.getElementById('all-nodes');
+	var btnDelEnemy = document.getElementById('del-enemies');
+	var btnGetRestr = document.getElementById('get-restr');
 	btnAllRoads.onclick = function(){
 		if ( btnAllRoadsOn ){
 			btnAllRoadsOn = false;
@@ -31,5 +33,13 @@ window.onload = function(){
 			btnAllNodesOn = true;
 			getAllNodes();
 		}
+	};
+	
+	btnDelEnemy.onclick = function(){
+		deleteEnemies();
+	};
+	
+	btnGetRestr.onclick = function(){
+		getRestrictedNodes();
 	};
 };	
