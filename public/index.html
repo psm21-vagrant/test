@@ -13,10 +13,12 @@
     <script type="text/javascript" src="/js/ajax.js"></script>
     <script type="text/javascript" src="/js/route.js"></script>
 	<script type="text/javascript" src="/js/helper.js"></script>
+	<script type="text/javascript" src="/js/time.js"></script>
 	<script type="text/javascript" src="/js/index.js"></script>
 </head>
     <body>
         <div id="map-block"></div>
+		<hr size="5"/>
 		<div class="service">
 			<select id="service">
 				<option value="google" >Google</option>
@@ -30,6 +32,7 @@
 			<button id="del-enemies">Del. enemy</button>
 			<button id="get-restr">Rest. nodes</button>
 			<div id="preloader"><img src="/img/load.gif"/></div>
+			<label class="time-label">Time: </label><span class="time-label" id="time"></span>
 		</div>
 		<script type="text/javascript" src="/js/map.js"></script>
 		<script type="text/javascript" src="/js/handler.js"></script>

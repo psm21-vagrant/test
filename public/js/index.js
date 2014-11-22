@@ -16,6 +16,7 @@ window.onload = function(){
 	var btnDelEnemy = document.getElementById('del-enemies');
 	var btnGetRestr = document.getElementById('get-restr');
 	var preloader = document.getElementById('preloader');
+	var time = document.getElementById('time');
 	btnAllRoads.onclick = function(){
 		if ( btnAllRoadsOn ){
 			btnAllRoadsOn = false;

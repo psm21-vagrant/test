@@ -149,8 +149,11 @@ function getRestrictedNodes(){
 function showRoute(start,end){
 	route_line.setLatLngs(dots2latlngs([]));
 	showElem(preloader);
+	Time.start();
 	Route.getRoute(start,end,function(route){
 		hideElem(preloader);
+		time.textContent = Time.stop() + ' мс';
+		time.innerText = Time.stop() + ' мс';
 		console.log(JSON.stringify(route));
 		if ( route.length == 0 ){
 			alert('Route not found');

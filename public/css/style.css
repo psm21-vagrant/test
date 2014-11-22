@@ -87,3 +87,19 @@ select#service
 	z-index:1;
 	display:none;
 }
+
+.time-label
+{
+	padding: 6px;
+	font-size: 24px;
+	color: #ff0;
+	font-family: Verdana;
+	background-color: #000;
+}
+
+hr
+{
+	width: 1024px;
+	margin-left: 0;
+	background-color: #ccc;
+}
