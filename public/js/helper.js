@@ -51,16 +51,7 @@ var Helper =
     
     deleteCookie: function(name) {
         this.setCookie(name, "", { expires: -1 })
-    },
-        
-    isUserNew: function(){
-        var result = false;
-        result = result || ( this.getCookie('user') == 'undefined' );
-        result = result || ( this.getCookie('user_id') == 'undefined' );
-        result = result || ( this.getCookie('user') == undefined );
-        result = result || ( this.getCookie('user_id') == undefined );
-        return result;
     }
-    
+        
 }
 

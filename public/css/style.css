@@ -78,3 +78,12 @@ select#service
 	padding: 5px;
 	font-family: Verdana;
 }
+
+#preloader
+{
+	position: absolute;
+	top: 350px;
+	left: 400px;
+	z-index:1;
+	display:none;
+}

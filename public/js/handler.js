@@ -1,5 +1,5 @@
-var start = null;
-var end = null;
+var start = null; //координаты стартовой точки
+var end = null; //координаты конечной точки
 var startPoint = null; //круг начальной точки
 var endPoint = null; //круг конечной точки
 var route_line = L.polyline([],{color:'blue'}).addTo(map);
@@ -10,7 +10,9 @@ var enemyCircle = []; //массив кругов вражеских полко�
 var radius = 0.01; //радиус действия полка
 var restr_nodes = []; //массив кругов запрещенных узлов
 
-
+/**
+* установка начальной и конечной точек на карте
+**/
 map.on('click',function(e){
 	if ( start == null ){
 		start = [e.latlng.lat,e.latlng.lng];
@@ -19,13 +21,7 @@ map.on('click',function(e){
 		end = [e.latlng.lat,e.latlng.lng];
 		endPoint = L.circle(L.latLng(end[0],end[1]),5,{color:'blue'}).addTo(map);
 		//alert('route request:'+JSON.stringify(start)+':'+JSON.stringify(end));
-		Route.getRoute(start,end,function(route){
-			console.log(JSON.stringify(route));
-			if ( route.length == 0 ){
-				alert('Route not found');
-			} 
-			route_line.setLatLngs(dots2latlngs(route));
-		});
+		showRoute(start, end);
 		
 	}else{
 		map.removeLayer(startPoint);
@@ -39,12 +35,17 @@ map.on('click',function(e){
 });
 
 
+/**
+* установка вражеских полков на карте по клику правой кнопки мыши
+**/
 map.on('contextmenu',function(e){
 	enemies.push({lat:e.latlng.lat,lng:e.latlng.lng,radius:radius});
 	setEnemy(e.latlng.lat,e.latlng.lng,radius);
 });
 
-//преобразование массива точек в массив объектов latlng
+/**
+* преобразование массива точек в массив объектов latlng
+**/
 function dots2latlngs(dots){
 	if (dots == null) return [];
 	latlngs = new Array();
@@ -52,6 +53,9 @@ function dots2latlngs(dots){
 	return latlngs;
 }//end func
 
+/**
+* запрос у сервера и отображение на карте всех дорог
+**/
 function getAllRoads(){
 	Ajax.sendRequest('GET','/allroads','a=1',function(r){
 		//console.log(JSON.stringify(r));
@@ -61,6 +65,9 @@ function getAllRoads(){
 	});
 }
 
+/**
+*  запрос у сервера и отображение на карте всех узлов
+**/
 function getAllNodes(){
 	Ajax.sendRequest('GET','/allnodes','a=1',function(n){
 		//console.log(JSON.stringify(n));
@@ -70,6 +77,9 @@ function getAllNodes(){
 	});
 }
 
+/**
+* удаление с карты выведенных дорог
+**/
 function clearAllRoads(){
 	while( roads.length != 0 ){
 		map.removeLayer(roads[0]);
@@ -78,6 +88,9 @@ function clearAllRoads(){
 	}
 }
 
+/**
+* удаление с карты выведенных узлов
+**/
 function clearAllNodes(){
 	while( nodes.length != 0 ){
 		map.removeLayer(nodes[0]);
@@ -86,6 +99,9 @@ function clearAllNodes(){
 	}
 }
 
+/**
+* отображение на карте вражеских полков
+**/
 function setEnemy(lat,lng,radius){
 	
 	var k = 1;
@@ -95,6 +111,9 @@ function setEnemy(lat,lng,radius){
 	
 }
 
+/**
+* удаление полков врага и запрещенных узлов
+**/
 function deleteEnemies(){
 	while ( enemyCircle.length != 0 ){
 		map.removeLayer(enemyCircle[0]);
@@ -112,6 +131,9 @@ function deleteEnemies(){
 	}
 }
 
+/**
+* запрос запрещенных узлов у сервера и отображение на карте
+**/
 function getRestrictedNodes(){
 	var params = 'data='+JSON.stringify(enemies);
 	Ajax.sendRequest('GET','/restricted',params,function(dots){
@@ -119,4 +141,33 @@ function getRestrictedNodes(){
 			restr_nodes.push(L.circle(L.latLng(dots[i][0],dots[i][1]),5,{color:'#e67823'}).addTo(map));
 		}
 	});
+}
+
+/**
+* запрос маршрута у сервера и отображение маршрута на карте
+**/
+function showRoute(start,end){
+	route_line.setLatLngs(dots2latlngs([]));
+	showElem(preloader);
+	Route.getRoute(start,end,function(route){
+		hideElem(preloader);
+		console.log(JSON.stringify(route));
+		if ( route.length == 0 ){
+			alert('Route not found');
+		} 
+		route_line.setLatLngs(dots2latlngs(route));
+	});
+}
+
+/**
+* показ элемента
+**/
+function showElem(el){
+	el.style.display = 'inline-block';
+}
+/**
+* скрытие элемента
+**/
+function hideElem(el){
+	el.style.display = 'none';
 }

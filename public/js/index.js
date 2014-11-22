@@ -4,6 +4,9 @@ window.onload = function(){
 	Route.service = selectService.value;
 	selectService.onchange = function(){
 		Route.service = selectService.value;
+		if ( start != null && end != null ){
+			showRoute(start, end);
+		}
 	};
 	
 	var btnAllRoadsOn = false;
@@ -12,6 +15,7 @@ window.onload = function(){
 	var btnAllNodes = document.getElementById('all-nodes');
 	var btnDelEnemy = document.getElementById('del-enemies');
 	var btnGetRestr = document.getElementById('get-restr');
+	var preloader = document.getElementById('preloader');
 	btnAllRoads.onclick = function(){
 		if ( btnAllRoadsOn ){
 			btnAllRoadsOn = false;
