@@ -21,7 +21,7 @@ map.on('click',function(e){
 		end = [e.latlng.lat,e.latlng.lng];
 		endPoint = L.circle(L.latLng(end[0],end[1]),5,{color:'blue'}).addTo(map);
 		//alert('route request:'+JSON.stringify(start)+':'+JSON.stringify(end));
-		showRoute(start, end);
+		showRoute(start, end, enemies);
 		
 	}else{
 		map.removeLayer(startPoint);
@@ -146,11 +146,11 @@ function getRestrictedNodes(){
 /**
 * запрос маршрута у сервера и отображение маршрута на карте
 **/
-function showRoute(start,end){
+function showRoute(start,end, enemies){
 	route_line.setLatLngs(dots2latlngs([]));
 	showElem(preloader);
 	Time.start();
-	Route.getRoute(start,end,function(route){
+	Route.getRoute(start,end,enemies,function(route){
 		hideElem(preloader);
 		time.textContent = Time.stop() + ' мс';
 		time.innerText = Time.stop() + ' мс';

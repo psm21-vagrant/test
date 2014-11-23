@@ -5,7 +5,7 @@ window.onload = function(){
 	selectService.onchange = function(){
 		Route.service = selectService.value;
 		if ( start != null && end != null ){
-			showRoute(start, end);
+			showRoute(start, end, enemies);
 		}
 	};
 	
