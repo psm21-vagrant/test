@@ -51,7 +51,6 @@ function loadRoads(callback){
 				if ( rows != null ){
 					var curr_from = 0;
 					var prev_from = 0;
-					var count_from = 0;
 					for ( var i = 0; i < rows.length; prev_from = curr_from,i++ ){
 						roads.push(rows[i]);
 						curr_from = rows[i].node_from;
@@ -75,6 +74,70 @@ function loadRoads(callback){
 			for ( var i = 0; i < 30; i++ ){
 				console.log(roads[i].node_from+':'+roads[i].node_to+'  '+index_from[i]+'   '+index_size[i]);
 			}
+			for ( var i = 0; i < 10; i++ ){
+				console.log(JSON.stringify(roads[i]));
+			}
+			*/
+			callback();
+		});
+	});
+}
+
+/**
+* получение дорог из базы в виде массива объектов и запись в массив roads + заполнение индексных массивов
+* версия 2
+* @param callback функция обратного вызова
+* roads - массив объектов вида {node_from:node_from,node_to:node_to,name:name,cost:cost,length:length,lat_from:lat_from,lng_from:lng_from,lat_to:lat_to,lng_to:lng_to}
+**/
+function loadRoads2(callback){
+	var sql = "SELECT node_from, node_to, name, cost, length, Y(rn.geometry) "; 
+		sql += "AS lat_from, X(rn.geometry) AS lng_from, Y(rn2.geometry) "; 
+		sql += "AS lat_to, X(rn2.geometry) AS lng_to, AsGeoJSON(r.geometry) AS geometry ";  
+		sql += "FROM roads r,roads_nodes rn, roads_nodes rn2 "; 
+		sql += "WHERE r.node_from=rn.node_id AND r.node_to=rn2.node_id ORDER BY node_from,node_to";
+	
+	
+	db.spatialite(function(err) {
+		db.all(sql, function(err, rows) {
+			if ( rows != undefined ){
+				if ( rows != null ){
+					//записываем в массив
+					var geom = null;
+					for ( var i = 0; i < rows.length; i++ ){
+						roads.push(rows[i]);
+						geom = JSON.parse(rows[i].geometry);
+						geom.coordinates.reverse();
+						roads.push({node_from:rows[i].node_to, node_to:rows[i].node_from,cost:rows[i].cost,length:rows[i].length,geometry:JSON.stringify(geom)});
+					}
+					m = roads.length;
+					//console.log('m=' + m);
+					roads.sort(function(x,y){ return x.node_from-y.node_from});
+					
+					var curr_from = 0;
+					var prev_from = 0;
+					for ( var i = 0; i < m; prev_from = curr_from,i++ ){
+						//console.log('i='+i);
+						curr_from = roads[i].node_from;
+						if ( curr_from != prev_from ){ //если from новый записываем его начальный индекс в index_from
+							if ( curr_from - 1 > index_from.length ){
+								for ( var j = 0; j < (curr_from - 1 - index_from.length); j++ ){
+									index_from.push(-1);
+									index_size.push(0);
+								}
+							}
+							index_from.push(i);
+							index_size.push(1);
+						}else{ //если from старый увеличиваем последний index_size
+							index_size[index_size.length-1]++;
+						}
+					}			
+				}
+			}
+			
+			for ( var i = 0; i < 30; i++ ){
+				console.log(roads[i].node_from+':'+roads[i].node_to+'  '+index_from[i]+'   '+index_size[i]);
+			}
+			/*
 			for ( var i = 0; i < 10; i++ ){
 				console.log(JSON.stringify(roads[i]));
 			}
@@ -112,12 +175,12 @@ function loadNodes(callback){
 function getCost(from,to){
 	if (from == to ) return 0;
 	if ( index_size[from-1] == 0 && index_size[to-1] == 0 ) return INF;
-	for ( i = index_from[from-1]; i < index_from[from-1] + index_size[from-1]; i++ ){
+	for ( var i = index_from[from-1]; i < index_from[from-1] + index_size[from-1]; i++ ){
 		if ( roads[i].node_from == from && roads[i].node_to == to ){
 			return roads[i].length;
 		} 
 	}
-	for ( i = index_from[to-1]; i < index_from[to-1] + index_size[to-1]; i++ ){
+	for ( var i = index_from[to-1]; i < index_from[to-1] + index_size[to-1]; i++ ){
 		if ( roads[i].node_to == from && roads[i].node_from == to ){
 			return roads[i].length;
 		} 
@@ -132,19 +195,28 @@ function getCoordinates(from,to){
 	var geom = null;
 	if (from == to ) return [];
 	if ( index_size[from-1] == 0 && index_size[to-1] == 0 ) return [];
-	for ( i = index_from[from-1]; i < index_from[from-1] + index_size[from-1]; i++ ){
+	for ( var i = index_from[from-1]; i < index_from[from-1] + index_size[from-1]; i++ ){
 		if ( roads[i].node_from == from && roads[i].node_to == to ){
 			geom = JSON.parse(roads[i].geometry);
 			return geom.coordinates;
 		} 
 	}
-	for ( i = index_from[to-1]; i < index_from[to-1] + index_size[to-1]; i++ ){
+	for ( var i = index_from[to-1]; i < index_from[to-1] + index_size[to-1]; i++ ){
 		if ( roads[i].node_to == from && roads[i].node_from == to ){
 			geom = JSON.parse(roads[i].geometry);
 			return geom.coordinates.reverse();
 		} 
 	}
 	return [];
+}
+
+/**
+* получение id узлов инцидентных данному
+**/
+function getIncident(curr){
+	var incident = [];
+	if ( curr > n || curr < 1 ) return incident;
+	
 }
 
 /**
@@ -155,7 +227,7 @@ function getCoordinates(from,to){
 function init(callback){
 	console.log('load graph...');
 	loadNodes(function(){
-		loadRoads(function(){
+		loadRoads2(function(){
 			callback();
 		})
 	});
@@ -248,15 +320,15 @@ function routeDijkstra(from, to, callback){
 	//вывод результатов
 	var lengthPath = label[end-1];
 	var path = [];
-	path.push(node_id2latlng(end));
+	path.push(end);
 	curr = end;
 	while( prev[curr-1] != start ){
-		path.push(node_id2latlng(prev[curr-1]));
+		path.push(prev[curr-1]);
 		curr = prev[curr-1];
 	}
-	path.push(node_id2latlng(start));
+	path.push(start);
 	path.reverse();
-	callback(path);
+	callback(path2route(path));
 }
 
 /**
@@ -312,15 +384,15 @@ function routeDijkstra2(from, to, callback){
 	if ( label[end-1] >= INF ) callback([]);
     var lengthPath = label[end-1];
 	var path = [];
-	path.push(node_id2latlng(end));
+	path.push(end);
 	curr = end;
 	while( prev[curr-1] != start ){
-		path.push(node_id2latlng(prev[curr-1]));
+		path.push(prev[curr-1]);
 		curr = prev[curr-1];
 	}
-	path.push(node_id2latlng(start));
+	path.push(start);
 	path.reverse();
-	callback(path);
+	callback(path2route(path));
 }
 
 /**
@@ -413,6 +485,51 @@ function routeDijkstra3(from, to, callback){
 		curr = prev[curr];
 	}
 	path.push(nodes_part[start]+1);
+	path.reverse();
+	callback(path2route(path));
+}
+
+
+/**
+* определение маршрута по алгоритму Дейкстры вариант 4
+* @param from начальная точка
+* @param to конечная точка
+* @param callback функция обратного вызова в которую передается результат в виде
+* массива точек [[lat1, lng1], [lat2,lng2],...]]
+**/
+function routeDijkstra4(from, to, callback){
+    var visited = []; /**посещенные вершины с постоянной меткой**/
+    var label = [];/**метки вершин**/
+    var prev = [];/**предыдущие вершины**/
+	var incident = null; /**массив смежных вершин **/ 
+    start = latlng2node_id(from);
+    end = latlng2node_id(to);
+	console.log(start+':'+end);
+	curr = start;
+	var tempLabel = 0;
+    for ( var i = 0; i < n; i++ ){
+	   visited.push(0);
+	   label.push(INF);
+	   prev.push(0);
+	}
+	
+	incident = getIncident(curr);
+	
+	if ( label[end-1] == INF ){
+		callback([]);
+		return false;
+	}
+	//вывод результатов
+	if ( label[end-1] >= INF ) callback([]);
+    var lengthPath = label[end-1];
+	var path = [];
+	path.push(end);
+	curr = end;
+	while( prev[curr-1] != start ){
+		path.push(prev[curr-1]);
+		curr = prev[curr-1];
+	}
+	path.push(start);
 	path.reverse();
 	callback(path2route(path));
 }
