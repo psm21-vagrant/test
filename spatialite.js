@@ -10,6 +10,7 @@ var n = 0; /**количество вершин графа**/
 var m = 0; /**количество дуг графа**/
 var INF = 999999999; /**большое число**/
 var margin = 0.6; /**коэффициент расширения для определения части графа для обсчета**/
+var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
 
 /**
 * выполнение запроса и получение результатов в виде массива объектов
@@ -428,9 +429,10 @@ function routeDijkstra3(from, to, callback){
 
 
 /**
-* определение маршрута по алгоритму Дейкстры вариант 4
+* определение маршрута по алгоритму Дейкстры вариант 4 с обходом полков неприятеля
 * @param from начальная точка
 * @param to конечная точка
+* @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
 * @param callback функция обратного вызова в которую передается результат в виде
 * массива точек [[lat1, lng1], [lat2,lng2],...]]
 **/
@@ -494,6 +496,105 @@ function routeDijkstraEnemy(from, to, enemy, callback){
 	path.reverse();
 	callback(path2route(path));
 }
+
+
+/**
+* определение маршрута по алгоритму Дейкстры вариант 5 с обходом полков неприятеля
+* и c усечением графа
+* @param from начальная точка
+* @param to конечная точка
+* @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
+* @param callback функция обратного вызова в которую передается результат в виде
+* массива точек [[lat1, lng1], [lat2,lng2],...]]
+**/
+function routeDijkstraEnemy2(from, to, enemy, callback){
+    var visited = []; /**посещенные вершины с постоянной меткой**/
+    var label = [];/**метки вершин**/
+    var prev = [];/**предыдущие вершины**/
+	var cost = 0;
+	var min = 0;
+	var nodes_part = []; /**индексный массив части обсчитываемых вершин**/
+	var u = 0; /**длина индексного массива части обсчитываемых вершин**/
+
+	//определяем границы
+	
+	var delta = Math.max(Math.abs(from[0] - to[0]),Math.abs(from[1] - to[1]))*margin2;
+	var lat_min = Math.min(from[0], to[0]) - delta;
+	if ( lat_min < -90 ){ lat_min = -90;} else if ( lat_min > 90 ){lat_min = 90;}
+	var lat_max = Math.max(from[0], to[0]) + delta;
+	if ( lat_min < -90 ){ lat_min = -90;} else if ( lat_min > 90 ){lat_min = 90;}
+	var lng_min = Math.min(from[1], to[1]) - delta;
+	if ( lng_min < -180 ){ lng_min = 360 + lng_min;} else if ( lng_min > 180 ){ lng_min = lng_min - 360;}
+	var lng_max = Math.max(from[1], to[1]) + delta;
+	if ( lng_max < -180 ){ lng_max = 360 + lng_max;} else if ( lng_max > 180 ){ lng_max = lng_max - 360;}
+	
+	console.log('lat_min: '+lat_min+'\nlat_max: '+lat_max+'\nlng_min: '+lng_min+'\nlng_max: '+lng_max);
+	//отбираем нужную часть графа
+	for ( var i = 0; i < n; i++ ){
+		var lat = nodes[i].lat;
+		var lng = nodes[i].lng;
+		if ( lat < lat_max && lat > lat_min && lng < lng_max && lng > lng_min ){
+			nodes_part.push(i);
+		}
+	}
+	u = nodes_part.length;
+    //определяем начало и конец в усеченном графе
+	var start = latlng2node_id_part(from,nodes_part,u);
+    var end = latlng2node_id_part(to,nodes_part,u);
+	console.log(start+':'+end);
+	var curr = start;
+    for ( var i = 0; i < u; i++ ){
+	   visited.push(0);
+	   label.push(INF);
+	   prev.push(0);
+	}
+    var tempLabel = 0;
+	visited[curr] = 1;
+	label[curr] = 0;
+	var banned = getBannedNodesId(enemy);
+	while ( visited[end] == 0 ){
+		for ( var i = 0; i < u; i++ ){
+			if ( visited[i] == 1 ) continue;
+			cost = getCost(nodes_part[curr]+1,nodes_part[i]+1,banned);
+			tempLabel = label[curr] + cost;
+			if ( tempLabel > INF ) tempLabel = INF;
+			if ( label[i] > tempLabel ){
+				label[i] = tempLabel;
+				prev[i] = curr;
+			}	
+		}
+		visited[curr] = 1;
+		min = INF;
+		index = curr;
+		for ( var i = 0; i < u; i++ ){
+			if ( visited[i] == 1 ) continue;
+			if ( min > label[i] ){
+				min = label[i];
+				index = i;
+			}	
+		}
+		if ( min == INF ) break; 
+		curr = index;
+		//console.log(curr);
+	}
+	if ( label[end] == INF ){
+		callback([]);
+		return false;
+	}
+	//вывод результатов
+	var lengthPath = label[end];
+	var path = [];
+	path.push(nodes_part[end]+1);
+	curr = end;
+	while( prev[curr] != start ){
+		path.push(nodes_part[prev[curr]]+1);
+		curr = prev[curr];
+	}
+	path.push(nodes_part[start]+1);
+	path.reverse();
+	callback(path2route(path));
+}
+
 
 /**
 * преобразование последовательности id узлов в массив путь
@@ -657,6 +758,7 @@ exports.routeDijkstra = routeDijkstra;
 exports.routeDijkstra2 = routeDijkstra2;
 exports.routeDijkstra3 = routeDijkstra3;
 exports.routeDijkstraEnemy = routeDijkstraEnemy;
+exports.routeDijkstraEnemy2 = routeDijkstraEnemy2;
 exports.getCost = getCost;
 exports.routeQuery = routeQuery;
 exports.getAllRoads = getAllRoads;
