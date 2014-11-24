@@ -2,7 +2,8 @@
 var Route =
 {
 	/** возможные варианты: 'osrm','google','spatialite_query','spatialite_dijkstra',
-	* 'spatialite_dijkstra3','spatialite_dijkstra_enemy','routebypassingwide'
+	* 'spatialite_dijkstra3','spatialite_dijkstra_enemy','spatialite_routebypassingwide',
+	* 'spatialite_routewave'
 	**/
 	service: 'spatialite_query', 
     
@@ -28,6 +29,8 @@ var Route =
 			Route.getRouteSpatialiteDijkstraEnemy(start,end,enemies,callback);
 		}else if( Route.service == 'spatialite_routebypassingwide' ){
 			Route.getRouteSpatialitebypassingWide(start,end,callback);
+		}else if( Route.service == 'spatialite_routewave' ){
+			Route.getRouteSpatialiterouteWave(start,end,callback);
 		}else{
             Route.getRouteSpatialiteQuery(start,end,callback);
         }
@@ -141,6 +144,24 @@ var Route =
 		var params = 'data=' + JSON.stringify([start,end]);
 		console.log(params);
 		Ajax.sendRequest('GET', '/routebypassingwide', params, function(route) {
+			//console.log(JSON.stringify(route));
+            callback(route);
+		});
+	},
+	
+	/**
+    * получение маршрута от модуля Spatialite метод routeWave'
+    * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+    * @param callback функция обратного вызова в которую передается маршрут и объект полка
+    **/
+    
+    getRouteSpatialiterouteWave: function(start,end,callback){
+		console.log(enemies);
+		var start = [start[0], start[1]];
+		var end = [end[0], end[1]];
+		var params = 'data=' + JSON.stringify([start,end]);
+		console.log(params);
+		Ajax.sendRequest('GET', '/routewave', params, function(route) {
 			//console.log(JSON.stringify(route));
             callback(route);
 		});

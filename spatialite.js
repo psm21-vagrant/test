@@ -650,6 +650,69 @@ function bypassingWide(from, to, callback){
 	callback(path2route(path));
 }
 
+/**
+* определение маршрута волновым алгоритмом
+* @param from начальная точка
+* @param to конечная точка
+* @param callback функция обратного вызова в которую передается результат в виде
+* массива точек [[lat1, lng1], [lat2,lng2],...]]
+**/
+function routeWave(from, to, callback){
+	var waveLabel = []; /**волновая метка**/
+	var T = 0;/**время**/
+	var oldFront = [];/**старый фронт**/
+	var newFront = [];/**новый фронт**/
+	var prev = []; /**предки вершин**/
+	var curr = null;
+	var id = null;
+	for ( var i = 0; i < n; i++ ){
+		waveLabel[i] = -1;
+		prev[i] = 0;
+	}
+	var start = latlng2node_id(from);
+    var end = latlng2node_id(to);
+	console.log(start+':'+end);
+	waveLabel[start-1] = 0;
+	oldFront.push(start);
+	while (true){
+		console.log(JSON.stringify(oldFront));
+		for ( var i = 0; i < oldFront.length; i++ ){
+			curr = oldFront[i];
+			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
+				id = roads[j].node_to;
+				if ( waveLabel[id-1] == -1 ){
+					waveLabel = T + 1;
+					newFront.push(id);
+					prev[id-1] = curr;
+				}
+				console.log('id='+id);
+				if ( id == end ){
+					//решение найдено
+					//вывод результатов
+					var path = [];
+					path.push(end);
+					curr = end;
+					while( prev[curr-1] != start ){
+						path.push(prev[curr-1]);
+						curr = prev[curr-1];
+					}
+					path.push(start);
+					path.reverse();
+					callback(path2route(path));
+					return true;
+				}
+			}
+		}
+		if ( newFront.length == 0 ){
+			callback([]);
+			return false;
+		}
+		oldFront = newFront;
+		newFront = [];
+		T++;
+	}
+}
+
 
 /**
 * преобразование последовательности id узлов в массив путь
@@ -820,3 +883,4 @@ exports.getAllRoads = getAllRoads;
 exports.getAllNodes = getAllNodes;
 exports.getRestirctedNodes = getRestirctedNodes;
 exports.bypassingWide = bypassingWide;
+exports.routeWave = routeWave;
