@@ -280,6 +280,8 @@ function routeDijkstra2(from, to, callback){
     var visited = []; /**посещенные вершины с постоянной меткой**/
     var label = [];/**метки вершин**/
     var prev = [];/**предыдущие вершины**/
+	var cost = 0;
+	var min = 0;
     start = latlng2node_id(from);
     end = latlng2node_id(to);
 	console.log(start+':'+end);
@@ -291,35 +293,36 @@ function routeDijkstra2(from, to, callback){
 	   prev.push(0);
 	}
 	label[curr-1] = 0;
-	for ( var i  = 0; i < n; i++ ){
+	while ( visited[end-1] == 0 ){
+		for ( var i = 0; i < n; i++ ){
+			if ( visited[i] == 1 ) continue;
+			cost = getCost(curr,i+1,[]);
+			tempLabel = label[curr-1] + cost;
+			if ( tempLabel > INF ) tempLabel = INF;
+			if ( label[i] > tempLabel ){
+				label[i] = tempLabel;
+				prev[i] = curr;
+			}	
+		}
+		visited[curr-1] = 1;
 		min = INF;
-        for ( j = 0; j < n; j++ ){
-			if ( visited[j] == 1 ) continue;
-			if ( label[j] < min ){
-			     min = label[j];
-                 curr = j+1;
-			}
-        }//end for
-        visited[curr-1] = 1;
-        if (label[curr-1] == INF || visited[end-1] == 1) break;
-        
-		for ( var j = 0; j < n; j++ ){
-			if ( visited[j] == 1 ) continue;
-            var cost = getCost(curr,j+1,[]);
-			tempLabel = (cost + label[curr-1]);
-			if (tempLabel > INF) tempLabel = INF;
-			if ( label[j] > tempLabel){
-				label[j] = tempLabel;
-				prev[j] = curr;       
-			}//end if 
-		}//end for	
-	}//end for
+		index = curr-1;
+		for ( var i = 0; i < n; i++ ){
+			if ( visited[i] == 1 ) continue;
+			if ( min > label[i] ){
+				min = label[i];
+				index = i;
+			}	
+		}
+		if ( min == INF ) break; 
+		curr = index+1;
+		//console.log(curr);
+	}
 	if ( label[end-1] == INF ){
 		callback([]);
 		return false;
 	}
 	//вывод результатов
-	if ( label[end-1] >= INF ) callback([]);
     var lengthPath = label[end-1];
 	var path = [];
 	path.push(end);
@@ -597,6 +600,58 @@ function routeDijkstraEnemy2(from, to, enemy, callback){
 
 
 /**
+* определение маршрута методом обхода в ширину
+* @param from начальная точка
+* @param to конечная точка
+* @param callback функция обратного вызова в которую передается результат в виде
+* массива точек [[lat1, lng1], [lat2,lng2],...]]
+**/
+function bypassingWide(from, to, callback){
+	var queue = []; /**очередь**/
+	var used = []; /**посещенные вершины**/
+	var prev = []; /**предки вершин**/
+	for ( var i = 0; i < n; i++ ){
+		used[i] = false;
+		prev[i] = 0;
+	}
+	var start = latlng2node_id(from);
+    var end = latlng2node_id(to);
+	console.log(start+':'+end);
+	var curr = start;
+	var id = null;
+	used[start-1] = true;
+	queue.push(start);
+	while( queue.length > 0 ){
+		curr = queue[0];
+		if ( curr == end ) break;
+		for ( var i = index_from[curr-1]; i < index_from[curr-1] + index_size[curr-1]; i++ ){
+			id = roads[i].node_to;
+			if ( !used[id-1] ){
+				used[id-1] = true;
+				queue.push(id);
+				prev[id-1] = curr;
+			}
+		}
+		queue.shift();
+	}
+	if ( !used[end-1] ){
+		callback([]);
+	}
+	//вывод результатов
+	var path = [];
+	path.push(end);
+	curr = end;
+	while( prev[curr-1] != start ){
+		path.push(prev[curr-1]);
+		curr = prev[curr-1];
+	}
+	path.push(start);
+	path.reverse();
+	callback(path2route(path));
+}
+
+
+/**
 * преобразование последовательности id узлов в массив путь
 * в виде
 * массива точек [[lat1, lng1], [lat2,lng2],...]]
@@ -764,3 +819,4 @@ exports.routeQuery = routeQuery;
 exports.getAllRoads = getAllRoads;
 exports.getAllNodes = getAllNodes;
 exports.getRestirctedNodes = getRestirctedNodes;
+exports.bypassingWide = bypassingWide;
