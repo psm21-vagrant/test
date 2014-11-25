@@ -675,17 +675,20 @@ function routeWave(from, to, callback){
 	waveLabel[start-1] = 0;
 	oldFront.push(start);
 	while (true){
-		console.log(JSON.stringify(oldFront));
+		//console.log(JSON.stringify(oldFront));
 		for ( var i = 0; i < oldFront.length; i++ ){
 			curr = oldFront[i];
+			//console.log('curr='+curr);
 			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
 				id = roads[j].node_to;
+				//console.log('id='+id);
+				//console.log('waveLabel[id]='+waveLabel[id-1] );
 				if ( waveLabel[id-1] == -1 ){
-					waveLabel = T + 1;
+					waveLabel[id-1] = T + 1;
 					newFront.push(id);
 					prev[id-1] = curr;
 				}
-				console.log('id='+id);
+				
 				if ( id == end ){
 					//решение найдено
 					//вывод результатов
