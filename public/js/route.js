@@ -3,7 +3,7 @@ var Route =
 {
 	/** возможные варианты: 'osrm','google','spatialite_query','spatialite_dijkstra',
 	* 'spatialite_dijkstra3','spatialite_dijkstra_enemy','spatialite_routebypassingwide',
-	* 'spatialite_routewave'
+	* 'spatialite_routewave','spatialite_routebypassingwideenemy','spatialite_routewaveenemy'
 	**/
 	service: 'spatialite_query', 
     
@@ -12,6 +12,7 @@ var Route =
 	
 	/**получение маршрута с различных сервисов
     * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+	* @param enemies массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
     * @param callback объект в который передается маршрут в виде массива точек и объект полка
     **/
     getRoute: function(start,end,enemies,callback){
@@ -31,6 +32,10 @@ var Route =
 			Route.getRouteSpatialitebypassingWide(start,end,callback);
 		}else if( Route.service == 'spatialite_routewave' ){
 			Route.getRouteSpatialiterouteWave(start,end,callback);
+		}else if( Route.service == 'spatialite_routebypassingwideenemy' ){
+			Route.getRouteSpatialitebypassingWideEnemy(start,end,enemies,callback);
+		}else if( Route.service == 'spatialite_routewaveenemy' ){
+			Route.getRouteSpatialiterouteWaveEnemy(start,end,enemies,callback);
 		}else{
             Route.getRouteSpatialiteQuery(start,end,callback);
         }
@@ -116,6 +121,7 @@ var Route =
 	/**
     * получение маршрута избегая позиций под боем противника от модуля Spatialite метод routeDijkstraEnemy 
     * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+	* @param enemies массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
     **/
     
@@ -126,6 +132,25 @@ var Route =
 		var params = 'data=' + JSON.stringify([start,end])+'&enemy='+JSON.stringify(enemies);
 		console.log(params);
 		Ajax.sendRequest('GET', '/routedijkstraenemy', params, function(route) {
+			//console.log(JSON.stringify(route));
+            callback(route);
+		});
+	},
+	
+	/**
+    * получение маршрута избегая позиций под боем противника от модуля Spatialite метод bypassingWideEnemy 
+    * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+	* @param enemies массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
+    * @param callback функция обратного вызова в которую передается маршрут и объект полка
+    **/
+    
+    getRouteSpatialitebypassingWideEnemy: function(start,end,enemies,callback){
+		console.log(enemies);
+		var start = [start[0], start[1]];
+		var end = [end[0], end[1]];
+		var params = 'data=' + JSON.stringify([start,end])+'&enemy='+JSON.stringify(enemies);
+		console.log(params);
+		Ajax.sendRequest('GET', '/routebypassingwideenemy', params, function(route) {
 			//console.log(JSON.stringify(route));
             callback(route);
 		});
@@ -162,6 +187,25 @@ var Route =
 		var params = 'data=' + JSON.stringify([start,end]);
 		console.log(params);
 		Ajax.sendRequest('GET', '/routewave', params, function(route) {
+			//console.log(JSON.stringify(route));
+            callback(route);
+		});
+	},
+	
+	/**
+    * получение маршрута от модуля Spatialite метод routeWaveEnemy'
+    * @param start, end точки начала и конца пути, представленные как массивы [lat,lng]
+	* @param enemies массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
+    * @param callback функция обратного вызова в которую передается маршрут и объект полка
+    **/
+    
+    getRouteSpatialiterouteWaveEnemy: function(start,end,enemies,callback){
+		console.log(enemies);
+		var start = [start[0], start[1]];
+		var end = [end[0], end[1]];
+		var params = 'data=' + JSON.stringify([start,end])+'&enemy='+JSON.stringify(enemies);
+		console.log(params);
+		Ajax.sendRequest('GET', '/routewaveenemy', params, function(route) {
 			//console.log(JSON.stringify(route));
             callback(route);
 		});

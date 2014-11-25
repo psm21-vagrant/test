@@ -114,6 +114,22 @@ app.get('/routebypassingwide',function(req,res){
      
 });
 
+/*маршрут для GET запроса маршрута от модуля spatialite через bypassingWideEnemy*/
+app.get('/routebypassingwideenemy',function(req,res){
+	var data = JSON.parse(req.query.data);
+	var enemy = JSON.parse(req.query.enemy);
+	var source = data[0];
+	var target = data[1];
+	time.start();
+	spatialite.bypassingWideEnemy(source, target, enemy, function(route){
+		console.log('Executing time: '+time.stop());
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(route));
+		res.end();
+	});
+     
+});
+
 /*маршрут для GET запроса маршрута от модуля spatialite через routeWave*/
 app.get('/routewave',function(req,res){
 	var data = JSON.parse(req.query.data);
@@ -121,6 +137,22 @@ app.get('/routewave',function(req,res){
 	var target = data[1];
 	time.start();
 	spatialite.routeWave(source, target, function(route){
+		console.log('Executing time: '+time.stop());
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(route));
+		res.end();
+	});
+     
+});
+
+/*маршрут для GET запроса маршрута от модуля spatialite через routeWaveEnemy*/
+app.get('/routewaveenemy',function(req,res){
+	var data = JSON.parse(req.query.data);
+	var enemy = JSON.parse(req.query.enemy);
+	var source = data[0];
+	var target = data[1];
+	time.start();
+	spatialite.routeWaveEnemy(source, target, enemy, function(route){
 		console.log('Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(route));
