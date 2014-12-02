@@ -1,3 +1,4 @@
+/**модуль для записи высотных данных из файла в базу sqlite**/
 var sqlite3 = require('sqlite3');
 var buffer = require('buffer');
 var fs = require('fs');
@@ -8,6 +9,12 @@ var Debug= require('./debug');
 var sql = "PRAGMA journal_mode = PERSIST";
 db.run(sql);
 
+/**
+* вставка данных из массива data вида [lng1, lat2, el1, lng2, lat2, el2, ...]
+* в базу sqlite  
+* @param data массив распарсеных данных вида [lng1, lat2, el1, lng2, lat2, el2, ...]
+* @param callback функция обратного вызова, вызываесая по завершении операции
+**/
 function insertRows(data,callback){
 	
 	var sql = "INSERT INTO elevation (lat,lng,el) VALUES ";
@@ -18,12 +25,18 @@ function insertRows(data,callback){
 	
 	db.run(sql, function(err){
 		if ( err != null ){
-			Debug.log(err);
+			console.log(err);
 		}
 		callback();
 	});
 }
 
+/**
+* чтение высотных данных из файла 
+* в базу sqlite  
+* @param filename имя файла с высотными данными
+* @param buffer_size размер буфера для чтения в байтах
+**/
 function loadFileToDb(filename, buffer_size){
 	
 	var fd = fs.openSync(filename,'r');
@@ -35,22 +48,34 @@ function loadFileToDb(filename, buffer_size){
 	var portion = [];
 	var readBuf = new Buffer(buffer_size);
 	var file_size = fs.statSync(filename).size;
-	/**���� ���� �� �������� ������ ������� � �����**/
+	/**пока файл не кончится читаем частями в буфер (функция рекурсивно вызывает саму себя пока не кончится файл)**/
 	loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, first, file_size);
 	//fs.closeSync(fd);
 }
 
+/**
+* чтение данных из буфера, парсинг и запись 
+* в базу sqlite  
+* @param fd дескриптор файла с высотными данными
+* @param portion временнный буфер(массив) для хранения символов содержащих данные для одной точки
+* @param readBuf буфер для чтения из файла (экземпляр класса buffer)
+* @param offset смещение в буфере для чтения
+* @param buffer_size размер буфера для чтения в байтах
+* @param position позиция начала чтения в файле
+* @param first флаг означающий что вывод осуществляется первый раз (для целей вывода прогресса операции)
+* @param file_size размер исходного файла с высотными данными
+**/
 function loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, first, file_size){
 	
 	var string = '';
 	var data = [];
 	var readed = fs.readSync(fd, readBuf, offset, buffer_size, position);	
 	if ( readed == 0 ) return true;
-	/**������ �������� � ������**/
+	/**читаем побайтно в массив**/
 	for ( var i = 0; i < readed; i++ ){ 
 		portion.push(readBuf[i]);
-		/**���� ��������� ���� 0A, �� ������ ������ �� ������� � ���������� ���������� � ������ � ����**/
-		/** ����� ������� ������**/
+		/**если встречаем байт 0A, то парсим строку из массива и записываем координаты и высоту в базу**/
+		/** потом очищаем массив**/
 		if ( readBuf[i] == 10 ){
 			for ( j = 0; j < portion.length; j++ ){
 				string += String.fromCharCode(portion[j]);
@@ -63,7 +88,7 @@ function loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, fir
 		}	
 	}
 	position += buffer_size;
-	/**����� ���������**/
+	/**вывод прогресса**/
 	if ( first ){
 		first = false;
 	}else{

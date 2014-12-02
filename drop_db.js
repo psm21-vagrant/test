@@ -1,3 +1,4 @@
+/**удаление файла базы sqlite**/
 var fs = require('fs');
 var filename = 'el.sqlite';
 
