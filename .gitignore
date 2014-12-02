@@ -2,3 +2,5 @@
 /node_modules
 Vagrantfile
 ETOPO1_Ice_g_int.xyz
+el.sqlite
+el.sqlite-journal
