@@ -44,12 +44,12 @@ function loadFileToDb(filename, buffer_size){
 	var offset = 0;
 	var position = 0;
 	var count = 0;
-	var first = true;
+	var lastOutputLen = 0;
 	var portion = [];
 	var readBuf = new Buffer(buffer_size);
 	var file_size = fs.statSync(filename).size;
 	/**пока файл не кончится читаем частями в буфер (функция рекурсивно вызывает саму себя пока не кончится файл)**/
-	loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, first, file_size);
+	loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, lastOutputLen, file_size);
 	//fs.closeSync(fd);
 }
 
@@ -62,10 +62,10 @@ function loadFileToDb(filename, buffer_size){
 * @param offset смещение в буфере для чтения
 * @param buffer_size размер буфера для чтения в байтах
 * @param position позиция начала чтения в файле
-* @param first флаг означающий что вывод осуществляется первый раз (для целей вывода прогресса операции)
+* @param lastOutputLen  количество символов последнего вывода
 * @param file_size размер исходного файла с высотными данными
 **/
-function loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, first, file_size){
+function loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, lastOutputLen, file_size){
 	
 	var string = '';
 	var data = [];
@@ -89,15 +89,15 @@ function loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, fir
 	}
 	position += buffer_size;
 	/**вывод прогресса**/
-	if ( first ){
-		first = false;
-	}else{
-		util.print('\b\b\b\b\b\b\b\b\b');
+	var progress = (position/file_size * 100).toFixed(6)+'%';
+	for ( var i = 0; i < lastOutputLen; i++ ){
+		util.print('\b');
 	}
-	util.print((position/file_size * 100).toFixed(6)+'%');
+	util.print(progress);
+	lastOutputLen = progress.length;
 	insertRows(data, function(){
 		data=[];  
-		loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, first, file_size); 
+		loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, lastOutputLen, file_size); 
 	});
 }
 
