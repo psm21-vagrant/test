@@ -25,7 +25,7 @@ if ( argv.length == 3 && ( argv[2] == '-h' || argv[2] == '--help')){
 	lat_max = parseFloat(argv[3]);
 	lng_min = parseFloat(argv[4]);
 	lng_max = parseFloat(argv[5])
-	if ( !isNan(lat_min) && !isNan(lat_max) && !isNan(lng_min) && !isNan(lng_max) ){
+	if ( !isNaN(lat_min) && !isNaN(lat_max) && !isNaN(lng_min) && !isNaN(lng_max) ){
 		if ( lat_min < lat_max && lng_min < lng_max ){
 			var coordRangeTrue = lat_min <= 90 && lat_min >= -90 &&
 								 lat_max <= 90 && lat_max >= -90 &&
@@ -63,7 +63,7 @@ db.run(sql);
 * @param lat,lng широта и долгота точки
 * @return true если точка принадлежит региону и false в противном случае
 **/
-checkCoordRange(lat,lng){
+function checkCoordRange(lat,lng){
 	if ( !partial ) return true;
 	var coordInRange = lat <= lat_max && lat >= lat_min &&
 					   lng <= lng_max && lng >= lng_min;
@@ -83,22 +83,28 @@ function insertRows(data,callback){
 			i -= 3;
 		}
 	}
-	if ( data.length == 0 ){
-		callback();
-		return true;
-	}
-	var sql = "INSERT INTO elevation (lat,lng,el) VALUES ";
-	for ( var i = 0; i < data.length-2; i += 3 ){
-		sql += "("+data[i+1]+","+data[i]+","+data[i+2]+")";
-		if ( i < data.length-3 ) sql += ",";
+	if ( data.length > 0 ){
+		var sql = "INSERT INTO elevation (lat,lng,el) VALUES ";
+		for ( var i = 0; i < data.length-2; i += 3 ){
+			sql += "("+data[i+1]+","+data[i]+","+data[i+2]+")";
+			if ( i < data.length-3 ) sql += ",";
+		}
+		
+		db.run(sql, function(err){
+			if ( err != null ){
+				console.log(err);
+			}
+			callback();
+		});	
+	}else{
+		var sql = "";
+		db.run(sql, function(err){
+			if ( err != null ){
+				callback();
+			}
+		});
 	}
 	
-	db.run(sql, function(err){
-		if ( err != null ){
-			console.log(err);
-		}
-		callback();
-	});
 }
 
 /**
