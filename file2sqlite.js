@@ -6,8 +6,69 @@ var db = new sqlite3.cached.Database('el.sqlite');
 var util = require('util');
 var Debug= require('./debug');
 
+var argv = process.argv;
+var lat_min = null; /**границы региона для которого значения высотные данные будут добавляться в базу**/
+var lat_max = null;
+var lng_min = null;
+var lng_max = null;
+var partial = false; /**флаг что база будет частичная**/
+
+/**
+* проверяем аргументы и в зависимости от результата 
+* или выводим помощь или инициализируем границы региона и флаг частичности
+**/
+if ( argv.length == 3 && ( argv[2] == '-h' || argv[2] == '--help')){
+	console.log('Usage: file2sqlite lat_min lat_max lng_min lng_max');
+	process.exit(0);
+}else if( argv.length > 5 ){
+	lat_min = parseFloat(argv[2]);
+	lat_max = parseFloat(argv[3]);
+	lng_min = parseFloat(argv[4]);
+	lng_max = parseFloat(argv[5])
+	if ( !isNan(lat_min) && !isNan(lat_max) && !isNan(lng_min) && !isNan(lng_max) ){
+		if ( lat_min < lat_max && lng_min < lng_max ){
+			var coordRangeTrue = lat_min <= 90 && lat_min >= -90 &&
+								 lat_max <= 90 && lat_max >= -90 &&
+								 lng_min <= 180 && lat_min >= -180 &&
+								 lng_max <= 180 && lat_max >= -180;
+			if ( coordRangeTrue ){
+				partial = true;
+			}else{
+				console.log('Incorrect parameters');
+			}
+		}else{
+			console.log('Incorrect relation between parameters');
+		}
+	}else{
+		console.log('Incorrect parameters');
+	}
+}
+
+
+if ( partial ){
+	console.log('will be created partial base:');
+	console.log('lat_min: '+lat_min);
+	console.log('lat_max: '+lat_max);
+	console.log('lng_min: '+lng_min);
+	console.log('lng_min: '+lng_max);
+}else{
+	console.log('will be created full base');
+}
+
 var sql = "PRAGMA journal_mode = PERSIST";
 db.run(sql);
+
+/**
+* проверка принадлежности координат точки к выбранному региону
+* @param lat,lng широта и долгота точки
+* @return true если точка принадлежит региону и false в противном случае
+**/
+checkCoordRange(lat,lng){
+	if ( !partial ) return true;
+	var coordInRange = lat <= lat_max && lat >= lat_min &&
+					   lng <= lng_max && lng >= lng_min;
+	return coordInRange;
+}
 
 /**
 * вставка данных из массива data вида [lng1, lat2, el1, lng2, lat2, el2, ...]
@@ -16,10 +77,19 @@ db.run(sql);
 * @param callback функция обратного вызова, вызываесая по завершении операции
 **/
 function insertRows(data,callback){
-	
+	for ( var i = 0; i < data.length-2; i += 3 ){
+		if ( !checkCoordRange( data[i+1], data[i] ) ){
+			data.splice(i,3);
+			i -= 3;
+		}
+	}
+	if ( data.length == 0 ){
+		callback();
+		return true;
+	}
 	var sql = "INSERT INTO elevation (lat,lng,el) VALUES ";
 	for ( var i = 0; i < data.length-2; i += 3 ){
-		sql += "("+data[i]+","+data[i+1]+","+data[i+2]+")";
+		sql += "("+data[i+1]+","+data[i]+","+data[i+2]+")";
 		if ( i < data.length-3 ) sql += ",";
 	}
 	
@@ -74,7 +144,7 @@ function loadBufferToDb(fd, portion, readBuf, offset, buffer_size, position, las
 	/**читаем побайтно в массив**/
 	for ( var i = 0; i < readed; i++ ){ 
 		portion.push(readBuf[i]);
-		/**если встречаем байт 0A, то парсим строку из массива и записываем координаты и высоту в базу**/
+		/**если встречаем байт 0A, то парсим строку из массива и записываем координаты и высоту в массив data**/
 		/** потом очищаем массив**/
 		if ( readBuf[i] == 10 ){
 			for ( j = 0; j < portion.length; j++ ){

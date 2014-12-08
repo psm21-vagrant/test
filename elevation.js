@@ -2,7 +2,6 @@
 var sqlite3 = require('sqlite3');
 var db = new sqlite3.Database('el.sqlite');
 var delta = 0.01;
-var time = require('./time');
 
 /**
 * получение высоты точки из базы
@@ -31,17 +30,20 @@ function getElevation(dot, callback){
 	});
 }
 
-var argv = process.argv;
-if ( argv.length < 4 ){
-	console.log('not find arguments lat, lng');
-}else if ( argv[2] < -90 || argv[2] > 90 || argv[3] < -180 || argv[3] > 180 ){
-	console.log('not correct arguments lat, lng');
-}else{
-	var lat = parseFloat(argv[2]);
-	var lng = parseFloat(argv[3]);
-	time.start();
-	getElevation([lat, lng], function(res){
-		console.log('Executing time: '+time.stop());
-		console.log(JSON.stringify(res));
+function query_exec(sql, callback){
+	db.all(sql, function(err, rows){
+		var result = [];
+		if ( err == null ){
+			for ( var i = 0; i < rows.length; i++ ){
+				result.push(rows[i]);
+			}
+			callback(result);
+		}else{
+			console.log(err);
+			callback(null);
+		} 
 	});
-} 
+}
+
+exports.getElevation = getElevation;
+exports.query_exec = query_exec;
