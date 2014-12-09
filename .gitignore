@@ -4,4 +4,5 @@ Vagrantfile
 ETOPO1_Ice_g_int.xyz
 el.sqlite
 el_old.sqlite
-el.sqlite-journal
+*.sqlite-journal
+*.sqlite
