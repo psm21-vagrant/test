@@ -1,6 +1,6 @@
 /**вывод таблицы высот**/
 var sqlite3 = require('sqlite3');
-var db = new sqlite3.Database('el.sqlite');
+
 
 /**
 *вывод таблицы высот
@@ -8,8 +8,13 @@ var db = new sqlite3.Database('el.sqlite');
 * @param limit ограничение вывода
 * @param offset смещение с какой записи выводить
 **/
-function printTable(order, limit, offset){
+function printTable(db_file, order, limit, offset){
 	var sql = "SELECT * FROM elevation";
+	if ( db_file == undefined ){
+		console.log('db_file not defined');
+		process.exit(0);
+	}
+	var db = new sqlite3.Database(db_file);
 	if ( order != undefined ) sql += " ORDER BY " + order;
 	if ( limit != undefined ) sql += " LIMIT " + limit;
 	if ( offset != undefined ) sql += " OFFSET " + offset;
@@ -21,7 +26,7 @@ function printTable(order, limit, offset){
 }
 
 /**
-* разборо аргументов командной строки
+* разборор аргументов командной строки
 * и вызов printTable
 **/
 function wrapPrintTable(){
@@ -30,14 +35,18 @@ function wrapPrintTable(){
 		printTable();
 	}else if ( argv.length == 3 ){
 		if ( argv[2] == '-h' || argv[2] == '--help' ){
-			console.log('Usage: node print_table sort_by limit offset');
-			return true;
+			console.log('Usage: node print_table <db_file> <sort_by> <limit offset');
+			process.exit(0);
 		}
 		printTable(argv[2]);
+		
 	}else if ( argv.length == 4 ){
 		printTable(argv[2], argv[3]);
-	}else if ( argv.length > 4 ){
+	}else if( argv.length == 5 ){
 		printTable(argv[2], argv[3], argv[4]);
+	}
+	else if ( argv.length > 5 ){
+		printTable(argv[2], argv[3], argv[4], argv[5]);
 	}
 }
 

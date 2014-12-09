@@ -13,18 +13,31 @@ var lng_min = null;
 var lng_max = null;
 var partial = false; /**флаг что база будет частичная**/
 
+
+var db_file = process.argv[2];
+if ( db_file == undefined ){
+	console.log('db_file not defined; Usage: file2sqlite <db_file> <lat_min> <lat_max> <lng_min> <lng_max>');
+	process.exit(0);
+}
+
+if ( !fs.existsSync(db_file) ){
+	console.log('Can not find file ' + db_file);
+	process.exit(0);
+} 
+
+var db = new sqlite3.cached.Database(db_file);
 /**
 * проверяем аргументы и в зависимости от результата 
 * или выводим помощь или инициализируем границы региона и флаг частичности
 **/
 if ( argv.length == 3 && ( argv[2] == '-h' || argv[2] == '--help')){
-	console.log('Usage: file2sqlite lat_min lat_max lng_min lng_max');
+	console.log('Usage: file2sqlite <lat_min> <lat_max> <lng_min> <lng_max>');
 	process.exit(0);
-}else if( argv.length > 5 ){
-	lat_min = parseFloat(argv[2]);
-	lat_max = parseFloat(argv[3]);
-	lng_min = parseFloat(argv[4]);
-	lng_max = parseFloat(argv[5])
+}else if( argv.length > 6 ){
+	lat_min = parseFloat(argv[3]);
+	lat_max = parseFloat(argv[4]);
+	lng_min = parseFloat(argv[5]);
+	lng_max = parseFloat(argv[6])
 	if ( !isNaN(lat_min) && !isNaN(lat_max) && !isNaN(lng_min) && !isNaN(lng_max) ){
 		if ( lat_min < lat_max && lng_min < lng_max ){
 			var coordRangeTrue = lat_min <= 90 && lat_min >= -90 &&
@@ -70,41 +83,63 @@ function checkCoordRange(lat,lng){
 	return coordInRange;
 }
 
+
 /**
-* вставка данных из массива data вида [lng1, lat2, el1, lng2, lat2, el2, ...]
-* в базу sqlite  
-* @param data массив распарсеных данных вида [lng1, lat2, el1, lng2, lat2, el2, ...]
-* @param callback функция обратного вызова, вызываесая по завершении операции
+* запуск sql запроса
+* @param sql запрос
+* @param callback функция обратного вызова
 **/
-function insertRows(data,callback){
+function queryRun(sql, callback){
+	db.run(sql, function(err){
+		if ( err != null ){
+			callback();
+		}else{
+			callback();
+		}
+	});	
+}
+
+/**
+* удаление из данных точек не попадающих в выбранный регион
+* @param data массив распарсеных данных вида [lng1, lat2, el1, lng2, lat2, el2, ...]
+**/
+function selectByRange(data){
 	for ( var i = 0; i < data.length-2; i += 3 ){
 		if ( !checkCoordRange( data[i+1], data[i] ) ){
 			data.splice(i,3);
 			i -= 3;
 		}
 	}
+	return data;
+}
+
+
+/**
+* подготовка строки запроса из массива с данными
+* @param data массив распарсеных данных вида [lng1, lat2, el1, lng2, lat2, el2, ...]
+**/
+function prepSQL(data){
+	var sql = "";
 	if ( data.length > 0 ){
-		var sql = "INSERT INTO elevation (lat,lng,el) VALUES ";
+		sql = "INSERT INTO elevation (lat,lng,el) VALUES ";
 		for ( var i = 0; i < data.length-2; i += 3 ){
 			sql += "("+data[i+1]+","+data[i]+","+data[i+2]+")";
 			if ( i < data.length-3 ) sql += ",";
 		}
-		
-		db.run(sql, function(err){
-			if ( err != null ){
-				console.log(err);
-			}
-			callback();
-		});	
-	}else{
-		var sql = "";
-		db.run(sql, function(err){
-			if ( err != null ){
-				callback();
-			}
-		});
 	}
-	
+	return sql;
+} 
+
+/**
+* вставка данных из массива data вида [lng1, lat2, el1, lng2, lat2, el2, ...]
+* в базу sqlite  
+* @param data массив распарсеных данных вида [lng1, lat2, el1, lng2, lat2, el2, ...]
+* @param callback функция обратного вызова, вызываемая по завершении операции
+**/
+function insertRows(data,callback){
+	var data = selectByRange(data);
+	var sql = prepSQL(data);
+	queryRun(sql, callback);
 }
 
 /**
