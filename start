@@ -1,2 +1,2 @@
 #! /bin/sh
-node ./server
+./start_server_route & ./start_server_elevation

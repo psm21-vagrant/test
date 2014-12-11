@@ -10,7 +10,7 @@ if ( argv.length < 4 ){
 	var lat = parseFloat(argv[2]);
 	var lng = parseFloat(argv[3]);
 	time.start();
-	elevation.getElevation([lat, lng], function(res){
+	elevation.getElevation2([lat, lng], function(res){
 		console.log('Executing time: '+time.stop());
 		console.log(JSON.stringify(res));
 	});

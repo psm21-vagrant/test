@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>
+		Сервис высотных данных - справка
+	</title>
+</head>
+<body>
+<h1>Сервис высотных данных</h1>
+<p>Сервис позволяет получить высотные данные по координатам одной точки или по координатам множества точек</p>
+<ol>
+	<li>
+		/elevation?data=[lat1,lng1] - получение высотных данных по одной точке
+		в формате: {lat_origin: lat, lng_origin: lng, lat:lat, lng:lng, elevation: elevation}
+	</li>
+	<li>
+		/elevation?data=[[lat1,lng1],[lat2,lng2], ..] - получение высотных данных по массиву точек
+		в формате: [{lat_origin: lat, lng_origin: lng, lat:lat, lng:lng, elevation: elevation}, ...]
+	</li>
+</ol>
+
+</body>
+
+</html>
