@@ -35,7 +35,7 @@ app.get('/elevation',function(req,res){
 app.get('/elevations',function(req,res){
 	var data = JSON.parse(req.query.data);
 	time.start();
-	elevation.getElevations(null, data, function(result){
+	elevation.getElevations(data, function(result){
 		console.log('Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(result));

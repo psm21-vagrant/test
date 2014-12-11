@@ -146,7 +146,7 @@ function number2tablename(index){
 /**
 * подготовка массива строк с запросами из данных
 * @param data массив распарсеных данных вида [[lng1, lat2, el1], [lng2, lat2, el2], ...]
-* @return sql строка запроса
+* @return sql массив строк запроса
 **/
 function prepSQLArray(data){
 	var arrSQL = [];
